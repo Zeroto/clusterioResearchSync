@@ -81,7 +81,15 @@ class ResearchSync {
         this.currentResearch = research;
       }
       else if (type === 'f ') {
-        this.currentResearch = "";
+        if (research === this.currentResearch) {
+          // we finished the research. Send remaining progress
+          const delta = 1.1 - (this.technologies.get(this.currentResearch) || 0); // we overestimate the delta to make sure that we end up as > 1
+          this.socket.emit('progress', {
+            research: this.currentResearch,
+            delta
+          });
+          this.currentResearch = "";
+        }
       }
     }
   }
@@ -90,12 +98,14 @@ class ResearchSync {
     if (currentResearch) {
       const currentProgress = this.technologies.get(currentResearch) || 0;
       const delta = parseFloat(await this.messageInterface(`/silent-command rcon.print(remote.call('researchSync', 'updateProgress', '${currentResearch}', ${currentProgress}))`));
-      this.technologies.set(currentResearch, currentProgress + delta);
+      this.technologies.set(currentResearch, (this.technologies.get(currentResearch) || 0) + delta);
       console.log(`research: ${currentResearch}, delta: ${delta}, progress: ${this.technologies.get(currentResearch)}`)
-      this.socket.emit('progress', {
-        research: currentResearch,
-        delta
-      });
+      if (delta > 0) {
+        this.socket.emit('progress', {
+          research: currentResearch,
+          delta
+        });
+      }
     }
   }
 

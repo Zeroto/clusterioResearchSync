@@ -43,14 +43,21 @@ class masterPlugin {
       });
 
       socket.on('progress', (data: {research: string, delta: number}) => {
-        const newProgress = (this.technologies.get(data.research) || 0) + data.delta;
-        this.technologies.set(data.research, newProgress);
-        console.log(`progress: ${data.research}, ${data.delta}, ${this.technologies.get(data.research)}`)
-        // we need to broadcast this out
-        this.io.sockets.emit('progress', {research: data.research, progress: newProgress})
+        if (this.getTechProgress(data.research) < 1) {
+          const newProgress = (this.getTechProgress(data.research) || 0) + data.delta;
+          this.technologies.set(data.research, newProgress);
+          console.log(`progress: ${data.research}, ${data.delta}, ${this.getTechProgress(data.research)}`)
+          // we need to broadcast this out
+          this.io.sockets.emit('progress', {research: data.research, progress: newProgress})
+        }
       });
     });
   }
+
+  getTechProgress(name: string){
+    return this.technologies.get(name) || 0;
+  }
 }
+
 
 export = masterPlugin;
