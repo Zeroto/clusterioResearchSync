@@ -1,0 +1,10 @@
+{
+  "name": "researchSync",
+  "version": "1.0.0",
+  "binary": "nodePackage",
+  "arguments": ["index.js"],
+  "description": "syncs research across servers",
+  "scriptOutputFileSubscription": "researchSync.txt",
+  "fileReadDelay": 50,
+  "masterPlugin": "masterPlugin.js"
+}
