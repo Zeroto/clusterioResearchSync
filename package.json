@@ -1,0 +1,15 @@
+{
+  "name": "researchSync",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "repository": "git@github.com:Zeroto/clusterioResearchSync.git",
+  "author": "Sander Homan <sander.homan@wordtango.net>",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc && cp -r ./lua ./dist/lua"
+  },
+  "devDependencies": {
+    "@types/node": "^12.6.8",
+    "gulp": "^4.0.2"
+  }
+}
