@@ -25,10 +25,7 @@ class ResearchSync {
     this.currentResearch = (await this.getCurrentResearch()).trim();
     console.log('currentResearch', this.currentResearch)
     this.socket.on('hello', () => this.socketRegister());
-    this.socket.on('technologies', (data:any) => {
-      this.technologies = new Map(data);
-      setInterval(() => this.getProgress(this.currentResearch), 5000);
-    });
+    this.socket.on('technologies', (data: Array<[string, number]>) => this.receiveTechnologies(data));
     this.socket.on('progress', (data:{research: string, progress: number}) => {
       console.log(`Received progress: ${JSON.stringify(data)}`);
       this.technologies.set(data.research, data.progress);
@@ -36,6 +33,15 @@ class ResearchSync {
         this.messageInterface(`/silent-command rcon.print(remote.call('researchSync', 'updateProgress', '${data.research}', ${data.progress}))`)
       }
     });
+  }
+
+  async receiveTechnologies(data: Array<[string, number]>) {
+    this.technologies = new Map(data);
+      // update the techs
+      for (const [key, value] of this.technologies) {
+        await this.messageInterface(`/silent-command rcon.print(remote.call('researchSync', 'updateProgress', '${key}', ${value}))`)
+      }
+      setInterval(() => this.getProgress(this.currentResearch), 5000);
   }
 
   async installHotpatchMod() {
