@@ -26,9 +26,7 @@ class ResearchSync {
     console.log('currentResearch', this.currentResearch)
     this.socket.on('hello', () => this.socketRegister());
     this.socket.on('technologies', (data:any) => {
-      for (const key in Object.keys(data)){ 
-        this.technologies.set(key, data[key]);
-      }
+      this.technologies = new Map(data);
       setInterval(() => this.getProgress(this.currentResearch), 5000);
     });
   }

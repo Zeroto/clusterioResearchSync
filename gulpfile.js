@@ -13,7 +13,7 @@ gulp.task('compile', function (done) {
 });
 
 gulp.task('copy', function () {
-  return gulp.src('./lua/*.lua')
+  return gulp.src('./src/lua/*.lua')
     .pipe(gulp.dest('./dist/lua'));
 });
 
