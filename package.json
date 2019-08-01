@@ -6,10 +6,13 @@
   "author": "Sander Homan <sander.homan@wordtango.net>",
   "license": "MIT",
   "scripts": {
-    "build": "tsc && cp -r ./lua ./dist/lua"
+    "build": "gulp"
   },
   "devDependencies": {
     "@types/node": "^12.6.8",
-    "gulp": "^4.0.2"
+    "gulp": "^4.0.2",
+    "@types/socket.io": "^2.1.2"
+  },
+  "dependencies": {
   }
 }

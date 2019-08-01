@@ -1,8 +1,10 @@
+import { Socket, Server } from "socket.io";
+
 type MasterPluginArguments = {
   config: any,
   pluginConfig: any,
   pluginPath: string,
-  socketio: any,
+  socketio: Server,
   express: any
 }
 
@@ -14,8 +16,8 @@ type Researcher = {
 class masterPlugin {
   config:any;
   pluginConfig: any;
-  pluginPath: any;
-  io: any;
+  pluginPath: string;
+  io: Server;
   app: any;
 
   researchers: Map<number, Researcher>
@@ -30,7 +32,7 @@ class masterPlugin {
     this.researchers = new Map<number, Researcher>();
     this.technologies = new Map<string, number>();
     
-    this.io.on("connection", (socket:any) => {
+    this.io.on("connection", (socket:Socket) => {
       socket.on('registerResearcher', (data: {instanceId: number, currentResearch: string}) => {
         console.log(`registering new research client: ${data.instanceId}`);
         this.researchers.set(data.instanceId, {
@@ -41,8 +43,11 @@ class masterPlugin {
       });
 
       socket.on('progress', (data: {research: string, delta: number}) => {
-        this.technologies.set(data.research, (this.technologies.get(data.research) || 0) + data.delta);
+        const newProgress = (this.technologies.get(data.research) || 0) + data.delta;
+        this.technologies.set(data.research, newProgress);
         console.log(`progress: ${data.research}, ${data.delta}, ${this.technologies.get(data.research)}`)
+        // we need to broadcast this out
+        this.io.sockets.emit('progress', {research: data.research, progress: newProgress})
       });
     });
   }

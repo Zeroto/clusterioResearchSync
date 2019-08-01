@@ -29,6 +29,13 @@ class ResearchSync {
       this.technologies = new Map(data);
       setInterval(() => this.getProgress(this.currentResearch), 5000);
     });
+    this.socket.on('progress', (data:{research: string, progress: number}) => {
+      console.log(`Received progress: ${JSON.stringify(data)}`);
+      this.technologies.set(data.research, data.progress);
+      if (this.currentResearch !== data.research) { // we only update the progress for non-active technologies. The current research will be updated in the getProgress loop
+        this.messageInterface(`/silent-command rcon.print(remote.call('researchSync', 'updateProgress', '${data.research}', ${data.progress}))`)
+      }
+    });
   }
 
   async installHotpatchMod() {
