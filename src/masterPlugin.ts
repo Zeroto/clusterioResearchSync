@@ -1,4 +1,7 @@
-import { Socket, Server } from "socket.io";
+import { Socket, Server } from 'socket.io';
+import fs from 'fs';
+import path from 'path';
+import util from 'util';
 
 type MasterPluginArguments = {
   config: any,
@@ -22,6 +25,7 @@ class masterPlugin {
 
   researchers: Map<number, Researcher>
   technologies: Map<string, number>
+  technologiesDatabasePath: string;
 	constructor({config, pluginConfig, pluginPath, socketio, express}:MasterPluginArguments){
     this.config = config;
 		this.pluginConfig = pluginConfig;
@@ -30,7 +34,10 @@ class masterPlugin {
     this.app = express;
 
     this.researchers = new Map<number, Researcher>();
-    this.technologies = new Map<string, number>();
+
+    this.technologiesDatabasePath = path.join(this.config.databaseDirectory, "technologies.json");
+    const technologiesDatabase = getDatabaseSync(this.technologiesDatabasePath, []);
+    this.technologies = new Map(technologiesDatabase);
     
     this.io.on("connection", (socket:Socket) => {
       socket.on('registerResearcher', (data: {instanceId: number, currentResearch: string}) => {
@@ -49,6 +56,8 @@ class masterPlugin {
           console.log(`progress: ${data.research}, ${data.delta}, ${this.getTechProgress(data.research)}`)
           // we need to broadcast this out
           this.io.sockets.emit('progress', {research: data.research, progress: newProgress})
+          // also save to file
+          saveDatabase(this.technologiesDatabasePath, Array.from(this.technologies.entries()));
         }
       });
     });
@@ -59,5 +68,27 @@ class masterPlugin {
   }
 }
 
+function getDatabaseSync(path:string, defaultValue: any){
+	try {
+		return JSON.parse(fs.readFileSync(path, "utf8"));
+	} catch(e){
+		return defaultValue;
+	}
+}
+
+async function saveDatabase(path: string, database: any){
+  const writeFileAsync = util.promisify(fs.writeFile);
+	if(!path){
+		throw new Error("No path provided!");
+	} else if(!database){
+		throw new Error("No database provided!");
+	} else {
+		try {
+			await writeFileAsync(path, JSON.stringify(database));
+		} catch(e){
+			throw new Error("Unable to write to database! "+path);
+		}
+	}
+}
 
 export = masterPlugin;
