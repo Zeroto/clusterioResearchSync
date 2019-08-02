@@ -1,5 +1,5 @@
 import pluginConfig from './config.json';
-import {getSafeLua, checkHotpatchInstallation} from './util';
+import { getSafeLua, checkHotpatchInstallation } from './util';
 import { MessageInterface } from './clusterio';
 
 class ResearchSync {
@@ -9,7 +9,7 @@ class ResearchSync {
   technologies: Map<string, number>;
   currentResearch: string;
 
-  constructor(slaveConfig: any, messageInterface: MessageInterface, extras: {socket: any}) {
+  constructor(slaveConfig: any, messageInterface: MessageInterface, extras: { socket: any }) {
     this.config = slaveConfig;
     this.messageInterface = messageInterface;
     this.socket = extras.socket;
@@ -26,7 +26,7 @@ class ResearchSync {
     console.log('currentResearch', this.currentResearch)
     this.socket.on('hello', () => this.socketRegister());
     this.socket.on('technologies', (data: Array<[string, number]>) => this.receiveTechnologies(data));
-    this.socket.on('progress', (data:{research: string, progress: number}) => {
+    this.socket.on('progress', (data: { research: string, progress: number }) => {
       console.log(`Received progress: ${JSON.stringify(data)}`);
       this.technologies.set(data.research, data.progress);
       if (this.currentResearch !== data.research) { // we only update the progress for non-active technologies. The current research will be updated in the getProgress loop
@@ -37,11 +37,11 @@ class ResearchSync {
 
   async receiveTechnologies(data: Array<[string, number]>) {
     this.technologies = new Map(data);
-      // update the techs
-      for (const [key, value] of this.technologies) {
-        await this.messageInterface(`/silent-command rcon.print(remote.call('researchSync', 'updateProgress', '${key}', ${value}))`)
-      }
-      setInterval(() => this.getProgress(this.currentResearch), 5000);
+    // update the techs
+    for (const [key, value] of this.technologies) {
+      await this.messageInterface(`/silent-command rcon.print(remote.call('researchSync', 'updateProgress', '${key}', ${value}))`)
+    }
+    setInterval(() => this.getProgress(this.currentResearch), 5000);
   }
 
   async installHotpatchMod() {
@@ -56,12 +56,12 @@ class ResearchSync {
       await this.messageInterface("Could not load research sync control code. Aborting.");
       return;
     }
-    
+
     const hotpatchUpdateCommand = `/silent-command remote.call('hotpatch', 'update', '${pluginConfig.name}', '${pluginConfig.version}', '${controlCode}')`
     const result = await this.messageInterface(hotpatchUpdateCommand);
     if (result) console.log('ResearchSync hotpatch install result: ', result);
   }
-  
+
   socketRegister() {
     this.socket.emit('registerResearcher', {
       instanceId: this.config.unique,
@@ -69,12 +69,12 @@ class ResearchSync {
     });
   }
 
-  scriptOutput(data:string) {
+  scriptOutput(data: string) {
     console.log(`Got script output: ${data}`)
     const lines = data.split('\n');
-    for (let i = 0; i< lines.length; i++) {
+    for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      const type = line.substring(0,2);
+      const type = line.substring(0, 2);
       const research = line.substring(2);
       console.log(type, research);
       if (type === 's ') {
