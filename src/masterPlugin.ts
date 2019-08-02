@@ -60,8 +60,9 @@ class masterPlugin {
         if (oldProgress.level === data.level && oldProgress.progress >= 1) {
           return;
         }
-        
-        const newProgress = {progress: oldProgress.level < data.level ? data.delta : oldProgress.progress + data.delta, level: data.level};
+
+        const newProgressValue = Math.min(1, oldProgress.level < data.level ? data.delta : oldProgress.progress + data.delta);
+        const newProgress = {progress: newProgressValue, level: data.level};
         this.technologies.set(data.research, newProgress);
         console.log(`progress: ${data.research}, ${data.delta}, ${JSON.stringify(this.getTechProgress(data.research))}`)
         // we need to broadcast this out

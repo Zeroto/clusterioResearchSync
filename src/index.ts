@@ -92,9 +92,11 @@ class ResearchSync {
         if (this.currentResearch && research === this.currentResearch.research && level === this.currentResearch.level) {
           // we finished the research. Send remaining progress
           const currentProgress = this.technologies.get(this.currentResearch.research) || {progress:0, level: this.currentResearch.level}
-          const delta = 1.1 - currentProgress.progress; // we overestimate the delta to make sure that we end up as > 1
+          const delta = 1.01 - currentProgress.progress; // we overestimate the delta to make sure that we end up as > 1
           this.sendProgress(this.currentResearch, delta);
+          this.technologies.set(this.currentResearch.research, {progress:1, level: this.currentResearch.level}); // also set it as finished in our progress
           this.currentResearch = null;
+
         }
       }
     }
