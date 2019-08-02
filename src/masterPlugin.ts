@@ -2,6 +2,7 @@ import { Socket, Server } from 'socket.io';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';
+import { Technology, ClientToServerProgress, ServerToClientProgress, Progress } from './sharedTypes';
 
 type MasterPluginArguments = {
   config: any,
@@ -24,7 +25,7 @@ class masterPlugin {
   app: any;
 
   researchers: Map<number, Researcher>
-  technologies: Map<string, number>
+  technologies: Map<string, Progress>
   technologiesDatabasePath: string;
   constructor({ config, pluginConfig, pluginPath, socketio, express }: MasterPluginArguments) {
     this.config = config;
@@ -33,7 +34,7 @@ class masterPlugin {
     this.io = socketio;
     this.app = express;
 
-    this.researchers = new Map<number, Researcher>();
+    this.researchers = new Map();
 
     this.technologiesDatabasePath = path.join(this.config.databaseDirectory, "technologies.json");
     const technologiesDatabase = getDatabaseSync(this.technologiesDatabasePath, []);
@@ -46,16 +47,17 @@ class masterPlugin {
           id: data.instanceId,
           currentResearch: data.currentResearch
         });
-        socket.emit('technologies', Array.from(this.technologies.entries()));
+        this.sendTechnologies(socket, Array.from(this.technologies.entries()));
       });
 
-      socket.on('progress', (data: { research: string, delta: number }) => {
-        if (this.getTechProgress(data.research) < 1) {
-          const newProgress = (this.getTechProgress(data.research) || 0) + data.delta;
+      socket.on('progress', (data: ClientToServerProgress) => {
+        const oldProgress = this.getTechProgress(data.research) || {progress: 0, level: data.level};
+        if (oldProgress.level <= data.level || oldProgress.progress < 1) { // don't perform update of progress when the tech is already researched
+          const newProgress = {progress: oldProgress.level < data.level ? data.delta : oldProgress.progress + data.delta, level: data.level};
           this.technologies.set(data.research, newProgress);
-          console.log(`progress: ${data.research}, ${data.delta}, ${this.getTechProgress(data.research)}`)
+          console.log(`progress: ${data.research}, ${data.delta}, ${JSON.stringify(this.getTechProgress(data.research))}`)
           // we need to broadcast this out
-          this.io.sockets.emit('progress', { research: data.research, progress: newProgress })
+          this.broadcastProgress({ research: data.research, progress: newProgress.progress, level: newProgress.level })
           // also save to file
           saveDatabase(this.technologiesDatabasePath, Array.from(this.technologies.entries()));
         }
@@ -63,8 +65,16 @@ class masterPlugin {
     });
   }
 
+  sendTechnologies(socket: Socket, technologies: Technology[]) {
+    socket.emit('technologies', technologies);
+  }
+
+  broadcastProgress(progress: ServerToClientProgress) {
+    this.io.sockets.emit('progress', progress)
+  }
+
   getTechProgress(name: string) {
-    return this.technologies.get(name) || 0;
+    return this.technologies.get(name);
   }
 }
 
@@ -76,8 +86,8 @@ function getDatabaseSync(path: string, defaultValue: any) {
   }
 }
 
+const writeFileAsync = util.promisify(fs.writeFile);
 async function saveDatabase(path: string, database: any) {
-  const writeFileAsync = util.promisify(fs.writeFile);
   if (!path) {
     throw new Error("No path provided!");
   } else if (!database) {
