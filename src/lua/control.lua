@@ -28,7 +28,11 @@ script.on_event(defines.events.on_research_started, function(event)
 end)
 
 script.on_event(defines.events.on_research_finished, function(event)
-  game.write_file(filename, "f " .. event.research.name .. ' ' .. event.research.level .. "\n", true, 0)
+  local level = event.research.level
+  if not event.research.researched then
+    level = level - 1 -- infinite research. Level has already been increased by one
+  end
+  game.write_file(filename, "f " .. event.research.name .. ' ' .. level .. "\n", true, 0)
   global.lastProgressCheckAmount = 0
 end)
 

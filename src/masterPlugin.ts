@@ -52,15 +52,22 @@ class masterPlugin {
 
       socket.on('progress', (data: ClientToServerProgress) => {
         const oldProgress = this.getTechProgress(data.research) || {progress: 0, level: data.level};
-        if (oldProgress.level <= data.level || oldProgress.progress < 1) { // don't perform update of progress when the tech is already researched
-          const newProgress = {progress: oldProgress.level < data.level ? data.delta : oldProgress.progress + data.delta, level: data.level};
-          this.technologies.set(data.research, newProgress);
-          console.log(`progress: ${data.research}, ${data.delta}, ${JSON.stringify(this.getTechProgress(data.research))}`)
-          // we need to broadcast this out
-          this.broadcastProgress({ research: data.research, progress: newProgress.progress, level: newProgress.level })
-          // also save to file
-          saveDatabase(this.technologiesDatabasePath, Array.from(this.technologies.entries()));
+
+        // don't perform update of progress when the tech is already researched
+        if (oldProgress.level > data.level) {
+          return;
         }
+        if (oldProgress.level === data.level && oldProgress.progress >= 1) {
+          return;
+        }
+        
+        const newProgress = {progress: oldProgress.level < data.level ? data.delta : oldProgress.progress + data.delta, level: data.level};
+        this.technologies.set(data.research, newProgress);
+        console.log(`progress: ${data.research}, ${data.delta}, ${JSON.stringify(this.getTechProgress(data.research))}`)
+        // we need to broadcast this out
+        this.broadcastProgress({ research: data.research, progress: newProgress.progress, level: newProgress.level })
+        // also save to file
+        saveDatabase(this.technologiesDatabasePath, Array.from(this.technologies.entries()));
       });
     });
   }
