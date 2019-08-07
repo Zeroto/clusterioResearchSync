@@ -10,9 +10,9 @@
   },
   "devDependencies": {
     "@types/node": "^12.6.8",
+    "@types/socket.io": "^2.1.2",
     "gulp": "^4.0.2",
-    "@types/socket.io": "^2.1.2"
+    "typescript": "^3.5.3"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
