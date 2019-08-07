@@ -6,7 +6,8 @@
   "author": "Sander Homan <sander.homan@wordtango.net>",
   "license": "MIT",
   "scripts": {
-    "build": "gulp"
+    "build": "gulp",
+    "compile": "tsc"
   },
   "devDependencies": {
     "@types/node": "^12.6.8",
