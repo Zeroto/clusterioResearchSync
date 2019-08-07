@@ -24,8 +24,8 @@ class masterPlugin {
   io: Server;
   app: any;
 
-  researchers: Map<number, Researcher>
-  technologies: Map<string, Progress>
+  researchers: Map<number, Researcher>;
+  technologies: Map<string, Progress>;
   technologiesDatabasePath: string;
   constructor({ config, pluginConfig, pluginPath, socketio, express }: MasterPluginArguments) {
     this.config = config;

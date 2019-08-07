@@ -14,14 +14,6 @@ script.on_init(function()
   initialize()
 end)
 
-local function getLastResearchName(event)
-  if (event.last_research) then
-    return event.last_research.name
-  else
-    return "nothing"
-  end
-end
-
 script.on_event(defines.events.on_research_started, function(event)
   game.write_file(filename, "s " .. event.research.name .. ' ' .. event.research.level .. "\n", true, 0)
   global.lastProgressCheckAmount = game.forces['player'].research_progress

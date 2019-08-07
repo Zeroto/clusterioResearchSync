@@ -17,4 +17,8 @@ gulp.task('copy', function () {
     .pipe(gulp.dest('./dist/lua'));
 });
 
+gulp.task('watch', function () {
+  gulp.watch('src/**/*', gulp.series('compile', 'copy'));
+});
+
 gulp.task('default', gulp.series('compile', 'copy'))
