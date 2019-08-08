@@ -11,11 +11,14 @@
     "watch": "gulp watch"
   },
   "devDependencies": {
+    "@types/ajv": "^1.0.0",
     "@types/node": "^12.6.8",
     "@types/socket.io": "^2.1.2",
     "gulp": "^4.0.2",
     "gulp-typescript": "^5.0.1",
     "typescript": "^3.5.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "ajv": "^6.10.2"
+  }
 }

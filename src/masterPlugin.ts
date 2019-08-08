@@ -3,6 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import util from 'util';
 import { Technology, ClientToServerProgress, ServerToClientProgress, Progress } from './sharedTypes';
+import Ajv from 'ajv';
+const ajv = new Ajv();
 
 type MasterPluginArguments = {
   config: any,
@@ -15,6 +17,10 @@ type MasterPluginArguments = {
 type Researcher = {
   id: number,
   currentResearch: string
+}
+
+function Log(message: string) {
+  console.log(`ResearchSync: ${message}`);
 }
 
 class masterPlugin {
@@ -42,7 +48,7 @@ class masterPlugin {
 
     this.io.on("connection", (socket: Socket) => {
       socket.on('registerResearcher', (data: { instanceId: number, currentResearch: string }) => {
-        console.log(`registering new research client: ${data.instanceId}`);
+        Log(`registering new research client: ${data.instanceId}`);
         this.researchers.set(data.instanceId, {
           id: data.instanceId,
           currentResearch: data.currentResearch
@@ -64,7 +70,7 @@ class masterPlugin {
         const newProgressValue = Math.min(1, oldProgress.level < data.level ? data.delta : oldProgress.progress + data.delta);
         const newProgress = {progress: newProgressValue, level: data.level};
         this.technologies.set(data.research, newProgress);
-        console.log(`progress: ${data.research}, ${data.delta}, ${JSON.stringify(this.getTechProgress(data.research))}`)
+        Log(`progress: ${data.research}, ${data.delta}, ${JSON.stringify(this.getTechProgress(data.research))}`)
         // we need to broadcast this out
         this.broadcastProgress({ research: data.research, progress: newProgress.progress, level: newProgress.level })
         // also save to file
@@ -86,9 +92,35 @@ class masterPlugin {
   }
 }
 
-function getDatabaseSync(path: string, defaultValue: any) {
+const databaseSchema = {
+  type: "array",
+  items: {
+    type: "array",
+    items: [
+      { type: "string"},
+      { 
+        type: "object",
+        properties: {
+          progress: { type: "number" },
+          level: { type: "number" }
+        },
+        required: ["progress", "level"]
+      }
+    ]
+  }
+}
+
+function getDatabaseSync(path: string, defaultValue: Array<[string, Progress]>): Array<[string, Progress]> {
+  Log(`Loading technologies from ${path}`);
   try {
-    return JSON.parse(fs.readFileSync(path, "utf8"));
+    const data = JSON.parse(fs.readFileSync(path, "utf8"));
+    const valid = ajv.validate(databaseSchema, data);
+    if (!valid) {
+      Log(`Validation errors: ${ajv.errorsText()}`);
+      return defaultValue;
+    } else {
+      return data;
+    }
   } catch (e) {
     return defaultValue;
   }
