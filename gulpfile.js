@@ -1,15 +1,11 @@
 const gulp = require('gulp');
-const exec = require('child_process').exec;
+const ts = require('gulp-typescript');
+const tsProject = ts.createProject('tsconfig.json');
 
 gulp.task('compile', function (done) {
-  exec('npm run compile', function (err, stdOut, stdErr) {
-    console.log(stdOut);
-    if (err){
-      done(err);
-    } else {
-      done();
-    }
-  });
+  return tsProject.src()
+    .pipe(tsProject())
+    .js.pipe(gulp.dest('dist'));
 });
 
 gulp.task('copy', function () {

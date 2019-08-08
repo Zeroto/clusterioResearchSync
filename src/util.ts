@@ -46,7 +46,7 @@ async function checkHotpatchInstallation(messageInterface: ((command: string) =>
   yn = yn.replace(/(\r\n\t|\n|\r\t)/gm, "");
   if (yn == "true") {
     return true;
-  } else if (yn == "false") {
+  } else {
     return false;
   }
 }
