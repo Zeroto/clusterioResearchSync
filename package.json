@@ -19,6 +19,6 @@
     "typescript": "^3.5.3"
   },
   "dependencies": {
-    "ajv": "^6.10.2"
+    "ajv": "^6.12.3"
   }
 }
